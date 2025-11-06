@@ -1,17 +1,22 @@
-import fs from "fs";
-import path from "path";
+// src/handlers/commandHandler.js
 
-export async function loadCommands(client) {
-  client.commands.clear();
-  const commandsPath = path.join(process.cwd(), "commands");
+// Caminho da pasta de comandos
+const commandsDir = './commands';
 
-  for (const folder of fs.readdirSync(commandsPath)) {
-    const folderPath = path.join(commandsPath, folder);
-    for (const file of fs.readdirSync(folderPath).filter(f => f.endsWith(".js"))) {
-      const command = (await import(`../commands/${folder}/${file}`)).default;
-      client.commands.set(command.data.name, command);
+// Função para carregar os comandos
+export async function loadCommands() {
+  const commands = new Map();
+
+  // Lendo arquivos da pasta de comandos
+  for await (const dirEntry of Deno.readDir(commandsDir)) {
+    if (dirEntry.isFile && dirEntry.name.endsWith('.js')) {
+      const modulePath = `./commands/${dirEntry.name}`;
+      const commandModule = await import(modulePath);
+      
+      // Assumindo que cada comando exporta { name, execute }
+      commands.set(commandModule.name, commandModule);
     }
   }
 
-  console.log(`🧩 Loaded ${client.commands.size} commands`);
+  return commands;
 }
