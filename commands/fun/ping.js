@@ -9,3 +9,5 @@ export default {
     await interaction.reply("🏓 Pong!");
   },
 };
+
+
